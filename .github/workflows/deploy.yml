@@ -1,42 +1,46 @@
-name: Deploy to GitHub Pages
+name: Deploy Website
 
 on:
   push:
     branches: [main]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+  workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install
+        run: npm ci
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Namecheap
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftps
+          local-dir: dist/
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/node_modules/**
+            cgi-bin/**
+            nc_assets/**
+            .well-known/**
