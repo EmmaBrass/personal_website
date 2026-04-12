@@ -1,16 +1,49 @@
-# React + Vite
+# Personal Website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This site is built with React + Vite.
 
-Currently, two official plugins are available:
+## What "Byte" is (likely Vite)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+You were likely thinking of **Vite** (pronounced like "veet").
+It is a fast frontend dev tool that gives you:
 
-## React Compiler
+- local development server
+- hot module replacement (hot reloading)
+- production build output
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run locally
 
-## Expanding the ESLint configuration
+1. Install dependencies (already installed if `node_modules` exists):
+   - `npm install`
+2. Start local dev server with hot reloading:
+   - `npm run dev`
+3. Open the local URL shown in your terminal (usually `http://localhost:5173`).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Build for production
+
+- `npm run optimize-images` (recommended after adding or replacing images)
+- `npm run build`
+- `npm run preview`
+
+`optimize-images` creates resized/compressed derivatives (JPG + HEIC) in `src/assets/optimized/`.
+The site uses these optimized files for faster loading and responsive `srcset`.
+
+## Pages in this site
+
+- About
+- Paintings
+- Code Art
+- Robots
+- Community
+- Face Value
+
+## Add images to pages
+
+Place images in these folders:
+
+- `src/assets/page-images/about/`
+- `src/assets/page-images/paintings/`
+- `src/assets/page-images/code-art/`
+- `src/assets/page-images/robots/`
+- `src/assets/page-images/community/`
+- `src/assets/page-images/face-value/`

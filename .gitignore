@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+site-deploy.zip
+src/assets/page-images/**/originals/
