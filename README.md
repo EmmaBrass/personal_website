@@ -2,15 +2,6 @@
 
 This site is built with React + Vite.
 
-## What "Byte" is (likely Vite)
-
-You were likely thinking of **Vite** (pronounced like "veet").
-It is a fast frontend dev tool that gives you:
-
-- local development server
-- hot module replacement (hot reloading)
-- production build output
-
 ## Run locally
 
 1. Install dependencies (already installed if `node_modules` exists):
@@ -27,6 +18,22 @@ It is a fast frontend dev tool that gives you:
 
 `optimize-images` creates resized/compressed derivatives (JPG + HEIC) in `src/assets/optimized/`.
 The site uses these optimized files for faster loading and responsive `srcset`.
+
+## Auto Deploy
+
+This repo auto-deploys to Namecheap via GitHub Actions.
+
+- Workflow file: `.github/workflows/deploy.yml`
+- Trigger: push to `main` (or run manually from the Actions tab)
+- Deploy target: FTP account root (configured to your web root)
+- Uploaded folder: `dist/`
+
+Required GitHub repository secrets:
+
+- `FTP_SERVER`
+- `FTP_USERNAME`
+- `FTP_PASSWORD`
+- `FTP_PORT`
 
 ## Pages in this site
 

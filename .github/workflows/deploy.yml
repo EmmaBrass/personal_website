@@ -4,19 +4,32 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      protocol:
+        description: FTP protocol to test
+        required: true
+        default: ftp
+        type: choice
+        options:
+          - ftp
+          - ftps
+          - ftps-legacy
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: true
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -27,18 +40,73 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Network check
+        run: |
+          echo "Checking ${{ secrets.FTP_SERVER }}:${{ secrets.FTP_PORT }}"
+          nc -vz "${{ secrets.FTP_SERVER }}" "${{ secrets.FTP_PORT }}"
+
+      - name: FTP preflight (diagnostics)
+        env:
+          PROTO: ${{ github.event.inputs.protocol || secrets.FTP_PROTOCOL || 'ftp' }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          python - <<'PY'
+          import ftplib
+          import os
+          import ssl
+          import sys
+
+          proto = os.environ["PROTO"]
+          host = os.environ["FTP_SERVER"]
+          port = int(os.environ["FTP_PORT"])
+          user = os.environ["FTP_USERNAME"]
+          pwd = os.environ["FTP_PASSWORD"]
+
+          print(f"Protocol: {proto}")
+          print(f"Host: {host}:{port}")
+
+          try:
+            if proto == "ftp":
+              ftp = ftplib.FTP()
+              ftp.connect(host, port, timeout=20)
+              ftp.login(user, pwd)
+              print("Login ok (FTP)")
+              print("PWD:", ftp.pwd())
+              print("Sample list:", ftp.nlst()[:10])
+              ftp.quit()
+            else:
+              context = ssl.create_default_context()
+              if proto == "ftps-legacy":
+                context.maximum_version = ssl.TLSVersion.TLSv1_2
+              ftps = ftplib.FTP_TLS(context=context)
+              ftps.connect(host, port, timeout=20)
+              ftps.login(user, pwd)
+              ftps.prot_p()
+              print(f"Login ok ({proto})")
+              print("PWD:", ftps.pwd())
+              print("Sample list:", ftps.nlst()[:10])
+              ftps.quit()
+          except Exception as exc:
+            print(f"FTP preflight failed: {exc}")
+            sys.exit(1)
+          PY
+
       - name: Deploy to Namecheap
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ secrets.FTP_PORT }}
-          protocol: ftps
+          protocol: ${{ github.event.inputs.protocol || secrets.FTP_PROTOCOL || 'ftp' }}
           local-dir: dist/
           server-dir: /
           exclude: |
             **/.git*
+            **/.git*/**
             **/.github/**
             **/node_modules/**
             cgi-bin/**
